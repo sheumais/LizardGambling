@@ -3,12 +3,18 @@ LizardGambling.name = "LizardGambling"
 LizardGambling.questName = "Lizard Racing"
 LizardGambling.lostRace = "Lost Race"
 LizardGambling.lostRaceJournal = "I've lost the race. I need to talk to Dulan to restart it."
+LizardGambling.wonRaceJournal = "I've won the race! I can now collect my winnings from Dulan."
+LizardGambling.watchRaceJournal = "I need to watch the race."
 LizardGambling.talkingToDulan = false
+LizardGambling.journalIndex = -1
+LizardGambling.wonPreviousRace = false
 LizardGambling.defaults = {
     choice = "Right",
     attempts = 0,
     wins = 0,
     displayResults = true,
+    cycle = true,
+    timeout = 20
 }
 LizardGambling.DulanSkippable = {
     ["What's Lizard Racing?"] = true,
@@ -25,6 +31,19 @@ LizardGambling.DulanChoices = {
     ["The right one."] = "Right",
 }
 
+local function enumerateChoices()
+    if LizardGambling.savedVars.choice == "Left" then 
+        LizardGambling.setMiddle()
+        return
+    elseif LizardGambling.savedVars.choice == "Middle" then 
+        LizardGambling.setRight()
+        return
+    else
+        LizardGambling.setLeft()
+        return
+    end
+end
+
 local function chatterBegin(e, optionCount)
     if (optionCount == 0) then
         EndInteraction(INTERACTION_CONVERSATION)
@@ -34,10 +53,13 @@ local function chatterBegin(e, optionCount)
         if LizardGambling.DulanSkippable[optionString] then 
             LizardGambling.talkingToDulan = true
             SelectChatterOption(i)
+            break
         elseif LizardGambling.DulanChoices[optionString] == LizardGambling.savedVars.choice then
             LizardGambling.talkingToDulan = true
+            if LizardGambling.wonPreviousRace then enumerateChoices() end
             SelectChatterOption(i)
             LizardGambling.savedVars.attempts = LizardGambling.savedVars.attempts + 1
+            break
         end
     end
 end
@@ -64,6 +86,26 @@ end
 local function questOffered(e)
     if LizardGambling.talkingToDulan then
         AcceptOfferedQuest()
+    end
+end
+
+local function raceTimeout()
+    EVENT_MANAGER:UnregisterForUpdate(LizardGambling.name.."Timeout")
+    AbandonQuest(LizardGambling.journalIndex)
+end
+
+local function questAdvanced(e, index, name, ...)
+    if name == LizardGambling.questName then 
+        EVENT_MANAGER:UnregisterForUpdate(LizardGambling.name.."Timeout")
+        LizardGambling.journalIndex = index
+        local text = GetJournalQuestStepInfo(LizardGambling.journalIndex)
+        if text == LizardGambling.wonRaceJournal then 
+            LizardGambling.wonPreviousRace = true
+        elseif text == LizardGambling.lostRaceJournal then 
+            LizardGambling.wonPreviousRace = false
+        elseif text == LizardGambling.watchRaceJournal then 
+            EVENT_MANAGER:RegisterForUpdate(LizardGambling.name.."Timeout", LizardGambling.savedVars.timeout * 1000, raceTimeout)
+        end
     end
 end
 
@@ -97,6 +139,23 @@ local optionsTable = {
         getFunc = function() return LizardGambling.savedVars.displayResults end,
         setFunc = function(value) LizardGambling.savedVars.displayResults = value end,
     },
+    [4] = {
+        type = "checkbox",
+        name = "Cycle choice",
+        tooltip = "Change to next lizard periodically",
+        getFunc = function() return LizardGambling.savedVars.cycle end,
+        setFunc = function(value) LizardGambling.savedVars.cycle = value end,
+    },
+    [5] = {
+        type = "slider",
+        name = "Timeout seconds",
+        tooltip = "Abandon quest in case it bugs after this amount of seconds",
+        min = 16,
+        max = 30,
+        step = 0.5,
+        getFunc = function() return LizardGambling.savedVars.timeout end,
+        setFunc = function(value) LizardGambling.savedVars = value end,
+    },
 }
 
 local panelData = {
@@ -123,6 +182,7 @@ local function Init(event, name)
     EVENT_MANAGER:RegisterForEvent(LizardGambling.name, EVENT_CHATTER_END, chatterEnd)
     EVENT_MANAGER:RegisterForEvent(LizardGambling.name, EVENT_QUEST_OFFERED, questOffered)
     EVENT_MANAGER:RegisterForEvent(LizardGambling.name, EVENT_QUEST_COMPLETE_DIALOG, questComplete)
+    EVENT_MANAGER:RegisterForEvent(LizardGambling.name, EVENT_QUEST_ADVANCED, questAdvanced)
     if LibAddonMenu2 then
         createOptions()
     end
