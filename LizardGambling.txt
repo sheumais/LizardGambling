@@ -6,3 +6,4 @@
 ## OptionalDependsOn: LibAddonMenu-2.0
 
 LizardGambling.lua
+Bindings.xml

@@ -67,6 +67,16 @@ local function questOffered(e)
     end
 end
 
+function LizardGambling.setLeft()
+    LizardGambling.savedVars.choice = "Left"
+end
+function LizardGambling.setMiddle()
+    LizardGambling.savedVars.choice = "Middle"
+end
+function LizardGambling.setRight()
+    LizardGambling.savedVars.choice = "Right"
+end
+
 local optionsTable = {
     [1] = {
         type = "header",
@@ -116,6 +126,9 @@ local function Init(event, name)
     if LibAddonMenu2 then
         createOptions()
     end
+    ZO_CreateStringId('SI_BINDING_NAME_LIZARDGAMBLING_LEFT', 'Set choice to left')
+    ZO_CreateStringId('SI_BINDING_NAME_LIZARDGAMBLING_MIDDLE', 'Set choice to middle')
+    ZO_CreateStringId('SI_BINDING_NAME_LIZARDGAMBLING_RIGHT', 'Set choice to right')
 end
 
 EVENT_MANAGER:RegisterForEvent(LizardGambling.name, EVENT_ADD_ON_LOADED, Init)

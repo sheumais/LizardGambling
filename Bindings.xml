@@ -1,0 +1,15 @@
+<Bindings>
+    <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+        <Category name="LizardGambling">
+            <Action name="LIZARDGAMBLING_LEFT">
+                <Down>LizardGambling.setLeft()</Down>
+            </Action>
+            <Action name="LIZARDGAMBLING_MIDDLE">
+                <Down>LizardGambling.setMiddle()</Down>
+            </Action>
+            <Action name="LIZARDGAMBLING_RIGHT">
+                <Down>LizardGambling.setRight()</Down>
+            </Action>
+        </Category>
+    </Layer>
+</Bindings>
