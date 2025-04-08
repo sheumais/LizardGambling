@@ -1,0 +1,8 @@
+## Title: Lizard Gambling
+## Author: TheMrPancake
+## Version: 1.0
+## APIVersion: 101045
+## SavedVariables: LizardGamblingSV
+## OptionalDependsOn: LibAddonMenu-2.0
+
+LizardGambling.lua
